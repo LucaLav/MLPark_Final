@@ -6,7 +6,19 @@
     tools:context="com.capone.lavorato.mlpark.MapsActivity" >
 
 
+    <Button
+        android:text="Parcheggia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button"
+        style="@android:style/Widget.Material.Light.Button" />
 
+    <Button
+        android:text="Dove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button2"
+        android:layout_marginLeft="300dp" />
 
     <fragment
         android:id="@+id/map"
@@ -16,13 +28,6 @@
         tools:context="com.capone.lavorato.mlpark.MapsActivity"
 
         />
-
-    <Button
-        android:text="Parcheggia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button"
-        style="@android:style/Widget.Material.Light.Button" />
 
 
 </FrameLayout>

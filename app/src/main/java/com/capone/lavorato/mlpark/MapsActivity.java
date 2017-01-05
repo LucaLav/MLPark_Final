@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,10 +20,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.StringTokenizer;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    LatLng myLocation;
+    private LatLng myLocation;
+    private String FILENAME = "posizione_parcheggio";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,13 +41,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
+        //pulsante per segnare il parcheggio
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                addMarker(myLocation);
+                try {
+                    addMarker(myLocation);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        //pulsante per recuperare il parcheggio
+        Button button2 = (Button) findViewById(R.id.button2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try {
+                    retrieveMarker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             }
         });
@@ -89,7 +116,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    public void addMarker (LatLng location){
+    //funzione per aggiungere marcatore
+    public void addMarker (LatLng location) throws IOException {
+
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(location).title("Auto MLMLML").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
+
+        //coordinate
+        String coord = Double.toString(myLocation.latitude)+"\n"+Double.toString(myLocation.longitude);
+
+        FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+        fos.write(coord.getBytes());
+        fos.close();
+
+    }
+
+    public void retrieveMarker() throws IOException {
+
+        int n = 0;
+        FileInputStream fis;
+        fis = openFileInput(FILENAME);
+        StringBuffer fileContent = new StringBuffer("");
+
+        byte[] buffer = new byte[1024];
+
+        while ((n = fis.read(buffer)) != -1)
+        {
+            fileContent.append(new String(buffer, 0, n));
+        }
+
+        Toast.makeText(this,fileContent, Toast.LENGTH_LONG).show();
+
+        StringTokenizer coordinate = new StringTokenizer(fileContent.toString());
+
+        LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
 
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(location).title("Auto MLMLML").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
