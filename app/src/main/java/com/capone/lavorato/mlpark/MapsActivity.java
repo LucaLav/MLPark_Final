@@ -1,6 +1,9 @@
 package com.capone.lavorato.mlpark;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -124,13 +127,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
 
-        //coordinate
         String coord = Double.toString(myLocation.latitude)+"\n"+Double.toString(myLocation.longitude);
 
+        //salva file con coordinate
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
         fos.write(coord.getBytes());
         fos.close();
 
+        //conferma a video
+        Toast.makeText(this,"posizione parcheggio memorizzata", Toast.LENGTH_SHORT).show();
+
+        MyDialog dialog = new MyDialog();
+        dialog.show(getFragmentManager(),"123");
     }
 
     public void retrieveMarker() throws IOException {
