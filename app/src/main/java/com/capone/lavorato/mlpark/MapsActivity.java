@@ -8,6 +8,8 @@ import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -20,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    LatLng myLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                addMarker(myLocation);
+
+            }
+        });
     }
 
 
@@ -43,6 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
         LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -59,13 +74,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onLocationChanged(Location location) {
-                mMap.clear();
-                LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(myLocation).title("Auto MLMLML").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
-
+               myLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
+
+
             public void onStatusChanged(String provider, int status, Bundle extras){}
             public void onProviderEnabled(String provider){}
             public void onProviderDisabled(String provider){}
@@ -73,5 +85,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+
+
+    }
+
+    public void addMarker (LatLng location){
+
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(location).title("Auto MLMLML").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
+
     }
 }
