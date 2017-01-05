@@ -46,7 +46,7 @@ public class MyDialog extends DialogFragment{
                 .setNegativeButton("NO", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        deleteFoto();
                     }
                 });
 
@@ -55,6 +55,10 @@ public class MyDialog extends DialogFragment{
 
     //FOTO - INTENT che gestisce
     private void dispatchTakePictureIntent() {
+
+        deleteFoto();
+
+        //INTENT CREAZIONE FOTO NUOVA
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
@@ -64,8 +68,8 @@ public class MyDialog extends DialogFragment{
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-
             }
+
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this.getContext(),
@@ -81,18 +85,30 @@ public class MyDialog extends DialogFragment{
     //Crea File Immagine
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName = "lastpark";
         File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+        File image = new File (storageDir, "lastpark.jpg");
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    //ELIMINA FOTO VECCHIA
+    private void deleteFoto(){
+
+        File Dirvecchiafoto = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if(Dirvecchiafoto.isDirectory()){
+
+            String[] children = Dirvecchiafoto.list();
+
+            for (int i = 0; i < children.length; i++)
+            {
+                new File(Dirvecchiafoto, children[i]).delete();
+            }
+
+        }
+
     }
 
 }
