@@ -1,9 +1,6 @@
 package com.capone.lavorato.mlpark;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,7 +27,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -37,7 +34,7 @@ import java.util.StringTokenizer;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private LatLng myLocation;
+    private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
 
     @Override
@@ -50,7 +47,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         //pulsante per segnare il parcheggio
-        Button button = (Button) findViewById(R.id.button);
+
+        ImageButton button = (ImageButton) findViewById(R.id.imageButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,7 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         //pulsante per recuperare il parcheggio
-        Button button2 = (Button) findViewById(R.id.button2);
+        ImageButton button2 = (ImageButton) findViewById(R.id.imageButton2);
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -132,6 +130,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
 
+        //PROVA LISTENER SU MARKER
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+
+                //Recupera percorso foto
+                File DirFoto = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                if(DirFoto.isDirectory()) {
+
+                    String[] children = DirFoto.list();
+
+                    if (children.length!=0) {
+                        File parkImage = new File((DirFoto.toString()) + '/' + children[0]);
+                        Intent i = new Intent();
+                        i.setAction(android.content.Intent.ACTION_VIEW);
+                        i.setDataAndType(Uri.fromFile(parkImage), "image/*");
+
+                        //lancia intent galleria per visualizzare la foto
+                        startActivity(i);
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Foto non esistente", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+            }
+        });
+        //FINE PROVA LISTENER SU MARKER
+
         String coord = Double.toString(myLocation.latitude)+"\n"+Double.toString(myLocation.longitude);
 
         //salva file con coordinate
@@ -140,7 +167,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fos.close();
 
         //conferma a video
-        Toast.makeText(this,"posizione parcheggio memorizzata", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Parcheggio memorizzato", Toast.LENGTH_SHORT).show();
 
         MyDialog dialog = new MyDialog();
         dialog.show(getFragmentManager(),"123");
