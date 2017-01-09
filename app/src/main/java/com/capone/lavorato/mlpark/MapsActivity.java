@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import java.util.Calendar;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -45,13 +46,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationManager lm;
     boolean hasLocation = false;
     boolean ready = false;
+
+    //Task asincrono che aspetta di trovare la posizione
     private class LocationBackground extends AsyncTask<Context, Void, Void> {
 
         protected Void doInBackground(Context... params){
-            //Wait 10 seconds to see if we can get a location from either network or GPS, otherwise stop
-            Calendar cal = Calendar.getInstance();
-            Long t = cal.getTimeInMillis();
-            while (!hasLocation || !ready){//Calendar.getInstance().getTimeInMillis() - t < 15000) {
+
+            while (!hasLocation || !ready){ //se non trova la posizione o se non è stato schiacciato il bottone "parcheggio", aspetta
                 try {
                     Log.i("Attesa", "Aspettiamo la posizione");
                     Thread.sleep(1000);
@@ -63,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         protected void onPostExecute(Void val) {
             try {
-                addMarker(myLocation);
+                addMarker(myLocation); //aggiunge marker parcheggio
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -79,13 +80,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
 
-        LocationListener locationListenerGPS = new LocationListener() {
+        LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
             @Override
             public void onLocationChanged(Location location) {
                 hasLocation = true;
                 myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                long time = location.getTime();
             }
 
 
@@ -98,13 +98,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onProviderDisabled(String provider) {
             }
         };
-        LocationListener locationListenerNet = new LocationListener() {
+
+        LocationListener locationListenerNet = new LocationListener() { //Listener NETWORK
 
             @Override
             public void onLocationChanged(Location location) {
                 hasLocation = true;
                 myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                long time = location.getTime();
             }
 
 
@@ -129,38 +129,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGPS);
-        //lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNet);
-        //lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-
-
-
+        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNet);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //pulsante per segnare il parcheggio
-
+        //Pulsante per segnare il parcheggio
         ImageButton button = (ImageButton) findViewById(R.id.imageButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                //try {
+            public void onClick(View v){
                     ready = true;
-
-                    /*if (hasLocation){
-                        addMarker(myLocation);
-                    }else Toast.makeText(getApplicationContext(),"Localizzazione fallita", Toast.LENGTH_LONG).show();*/
-                /*} catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-
-
             }
         });
 
-        //pulsante per recuperare il parcheggio
+        //Pulsante per recuperare il parcheggio
         ImageButton button2 = (ImageButton) findViewById(R.id.imageButton2);
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,21 +159,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+
         if (!checkLocation()){
             return;
         }
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -203,62 +179,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-
-
-
     }
 
-    //funzione per aggiungere marcatore
+    //Funzione per aggiungere marcatore
     public void addMarker (LatLng location) throws IOException {
-        Toast.makeText(getApplicationContext(),"DEBUGGING", Toast.LENGTH_SHORT).show();
+
         mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.poffycar)));
+        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
-
-        //PROVA LISTENER SU MARKER
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-            @Override
-            public void onInfoWindowClick(Marker marker) {
-
-                //Recupera percorso foto
-                File DirFoto = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                if(DirFoto.isDirectory()) {
-
-                    String[] children = DirFoto.list();
-
-                    if (children.length!=0) {
-                        File parkImage = new File((DirFoto.toString()) + '/' + children[0]);
-                        Intent i = new Intent();
-                        i.setAction(android.content.Intent.ACTION_VIEW);
-                        i.setDataAndType(Uri.fromFile(parkImage), "image/*");
-
-                        //lancia intent galleria per visualizzare la foto
-                        startActivity(i);
-                    }
-                    else{
-                        Toast.makeText(getApplicationContext(),"Foto non Presente", Toast.LENGTH_LONG).show();
-                    }
-                }
-
-            }
-        });
-        //FINE PROVA LISTENER SU MARKER
+        recuperaFotoListener();
 
         String coord = Double.toString(myLocation.latitude)+"\n"+Double.toString(myLocation.longitude);
 
-        //salva file con coordinate
+        //Salva file con coordinate
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
         fos.write(coord.getBytes());
         fos.close();
 
-        //conferma a video
+        //Conferma a video delle coordinate
         Toast.makeText(this,"Parcheggio Memorizzato", Toast.LENGTH_SHORT).show();
 
         MyDialog dialog = new MyDialog();
         dialog.show(getFragmentManager(),"123");
     }
 
+    //Funzione che recupera marcatore
     public void retrieveMarker() throws IOException {
 
         int n = 0;
@@ -280,11 +226,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
 
         mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.poffycar)));
+        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.poffy_car)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
+        recuperaFotoListener(); //funzione che recupera la foto dal Marker (solo se esiste)
+    }
 
-        //Listener sul Marker
+    //LISTENER PER RECUPERARE LA FOTO DAL MARKER
+    public void recuperaFotoListener(){
+
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
@@ -312,7 +262,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
     }
 
     private boolean isLocationEnabled() {
@@ -325,6 +274,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return isLocationEnabled();
     }
 
+    //Alert che ti invita ad attivare la localizzazione se disattivata (check location)
     private void showAlert() {
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Abilita Localizzazione")
@@ -343,6 +293,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 });
         dialog.show();
+    }
+
+    private Bitmap iconScaler(int height, int width){
+
+        BitmapDrawable  bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.mipmap.poffy_car);
+
+        Bitmap b = bitmapdraw.getBitmap();
+
+        Bitmap bigmarker = Bitmap.createScaledBitmap(b,width,height,false);
+
+        return bigmarker;
     }
 
 }
