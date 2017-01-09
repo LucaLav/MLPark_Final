@@ -1,6 +1,7 @@
 package com.capone.lavorato.mlpark;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -8,11 +9,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -36,11 +38,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
+    LocationManager lm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
+        if (!checkLocation()){
+            return;
+        }
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -92,7 +99,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
-        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -120,13 +126,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
 
+
     }
 
     //funzione per aggiungere marcatore
     public void addMarker (LatLng location) throws IOException {
-
         mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
+        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
 
@@ -151,7 +157,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         startActivity(i);
                     }
                     else{
-                        Toast.makeText(getApplicationContext(),"Foto non esistente", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(),"Foto non Presente", Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -167,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fos.close();
 
         //conferma a video
-        Toast.makeText(this,"Parcheggio memorizzato", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Parcheggio Memorizzato", Toast.LENGTH_SHORT).show();
 
         MyDialog dialog = new MyDialog();
         dialog.show(getFragmentManager(),"123");
@@ -228,4 +234,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+    private boolean isLocationEnabled() {
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+    private boolean checkLocation() {
+        if(!isLocationEnabled())
+            showAlert();
+        return isLocationEnabled();
+    }
+
+    private void showAlert() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Abilita Localizzazione")
+                .setMessage("L'impostazione di localizzazione GPS è settata su 'Off'.\nAbilitare la Localizzazione per " +
+                        "usare questa app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }
+
 }
