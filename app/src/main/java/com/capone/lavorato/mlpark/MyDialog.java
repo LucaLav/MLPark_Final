@@ -9,18 +9,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
-import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-/**
- * Created by capuan on 05/01/17.
- */
 
 public class MyDialog extends DialogFragment{
 
@@ -38,7 +30,7 @@ public class MyDialog extends DialogFragment{
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                //Apri fotocamera e scata foto
+                //Apri fotocamera e scatta foto
                 dispatchTakePictureIntent();
 
             }
@@ -85,7 +77,6 @@ public class MyDialog extends DialogFragment{
     //Crea File Immagine
     private File createImageFile() throws IOException {
         // Create an image file name
-        String imageFileName = "lastpark";
         File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = new File (storageDir, "lastpark.jpg");
 
