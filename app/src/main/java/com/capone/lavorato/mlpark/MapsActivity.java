@@ -210,7 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //funzione per aggiungere marcatore
     public void addMarker (LatLng location) throws IOException {
-        Toast.makeText(getApplicationContext(),"DEBUG", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),"DEBUGGING", Toast.LENGTH_SHORT).show();
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.poffycar)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
