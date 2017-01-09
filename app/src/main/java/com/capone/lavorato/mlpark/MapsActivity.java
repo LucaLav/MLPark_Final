@@ -4,16 +4,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import java.util.Calendar;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -35,19 +38,103 @@ import java.util.StringTokenizer;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+
     private GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
     LocationManager lm;
+    boolean hasLocation = false;
+    boolean ready = false;
+    private class LocationBackground extends AsyncTask<Context, Void, Void> {
+
+        protected Void doInBackground(Context... params){
+            //Wait 10 seconds to see if we can get a location from either network or GPS, otherwise stop
+            Calendar cal = Calendar.getInstance();
+            Long t = cal.getTimeInMillis();
+            while (!hasLocation || !ready){//Calendar.getInstance().getTimeInMillis() - t < 15000) {
+                try {
+                    Log.i("Attesa", "Aspettiamo la posizione");
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            };
+            return null;
+        }
+        protected void onPostExecute(Void val) {
+            try {
+                addMarker(myLocation);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+    LocationBackground lb = new LocationBackground();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        lb.execute(this);
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
-        if (!checkLocation()){
+
+        LocationListener locationListenerGPS = new LocationListener() {
+
+            @Override
+            public void onLocationChanged(Location location) {
+                hasLocation = true;
+                myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                long time = location.getTime();
+            }
+
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+        LocationListener locationListenerNet = new LocationListener() {
+
+            @Override
+            public void onLocationChanged(Location location) {
+                hasLocation = true;
+                myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                long time = location.getTime();
+            }
+
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGPS);
+        //lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNet);
+        //lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+
+
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -59,12 +146,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //try {
+                    ready = true;
 
-                try {
-                    addMarker(myLocation);
-                } catch (IOException e) {
+                    /*if (hasLocation){
+                        addMarker(myLocation);
+                    }else Toast.makeText(getApplicationContext(),"Localizzazione fallita", Toast.LENGTH_LONG).show();*/
+                /*} catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
+
 
             }
         });
@@ -83,6 +174,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+        if (!checkLocation()){
+            return;
+        }
     }
 
 
@@ -109,21 +203,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        LocationListener locationListener = new LocationListener() {
-
-            @Override
-            public void onLocationChanged(Location location) {
-               myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            }
-
-
-            public void onStatusChanged(String provider, int status, Bundle extras){}
-            public void onProviderEnabled(String provider){}
-            public void onProviderDisabled(String provider){}
-        };
-
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
 
 
@@ -131,6 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //funzione per aggiungere marcatore
     public void addMarker (LatLng location) throws IOException {
+
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
@@ -250,14 +330,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         dialog.setTitle("Abilita Localizzazione")
                 .setMessage("L'impostazione di localizzazione GPS è settata su 'Off'.\nAbilitare la Localizzazione per " +
                         "usare questa app")
-                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Impostazioni", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                         Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                         startActivity(myIntent);
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Annulla", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                     }
