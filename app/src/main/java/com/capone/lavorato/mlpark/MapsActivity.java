@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.StringTokenizer;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -60,46 +62,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String FILENAME = "posizione_parcheggio";
     LocationManager lm;
     boolean hasLocation = false;
-    boolean ready = false;
-
-    //Task asincrono che aspetta di trovare la posizione
-    private class LocationBackground extends AsyncTask<Context, Void, Void> {
-
-        protected Void doInBackground(Context... params){
-
-            while (!hasLocation || !ready){ //se non trova la posizione o se non è stato schiacciato il bottone "parcheggio", aspetta
-                try {
-                    Log.i("Attesa", "Aspettiamo la posizione");
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            };
-            return null;
-        }
-        protected void onPostExecute(Void val) {
-            try {
-                addMarker(myLocation); //aggiunge marker parcheggio
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-    LocationBackground lb = new LocationBackground();
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-
-        lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
+        checkPermission(all_permissions, MPR);
     }
 
     @Override
     protected void onStart(){
         super.onStart();
-
+        lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
             @Override
@@ -217,14 +191,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
         recuperaFotoListener();
 
-        String coord = Double.toString(location.latitude)+"\n"+Double.toString(location.longitude);
+        //Prende la data in quel momento e la salva insieme alle coordinate
+        SimpleDateFormat orario_parcheggio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Calendar c = Calendar.getInstance();
+        String parkdate = orario_parcheggio.format(c.getTime());
+
+        String coordEparkdate = Double.toString(location.latitude)+"\n"+Double.toString(location.longitude)+"\n"+parkdate;
+
 
         //Salva file con coordinate
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
-        fos.write(coord.getBytes());
+        fos.write(coordEparkdate.getBytes());
         fos.close();
 
-        //uploadFile(location.latitude, location.longitude);
+        uploadFile(location.latitude, location.longitude);
 
         //Conferma a video delle coordinate
         Toast.makeText(this,"Parcheggio Memorizzato", Toast.LENGTH_SHORT).show();
@@ -248,14 +228,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             fileContent.append(new String(buffer, 0, n));
         }
 
-        Toast.makeText(this,fileContent, Toast.LENGTH_LONG).show();
-
         StringTokenizer coordinate = new StringTokenizer(fileContent.toString());
 
         LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
 
+        Toast.makeText(this,"Parcheggio del "+coordinate.nextToken()+" alle ore "+coordinate.nextToken(), Toast.LENGTH_LONG).show();
+
+
         mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromResource(R.mipmap.poffy_car)));
+        mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
         recuperaFotoListener(); //funzione che recupera la foto dal Marker (solo se esiste)
@@ -383,7 +364,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-
+                    android.os.Process.killProcess(android.os.Process.myPid());
                 } else {
 
                     // permission denied, boo! Disable the

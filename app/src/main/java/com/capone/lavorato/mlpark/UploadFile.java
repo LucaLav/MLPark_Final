@@ -42,6 +42,7 @@ public class UploadFile extends Activity implements GoogleApiClient.ConnectionCa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.upload_file);
 
         latitude = getIntent().getDoubleExtra("latitudine", 0.0);
         longitude = getIntent().getDoubleExtra("longitudine", 0.0);
@@ -65,7 +66,11 @@ public class UploadFile extends Activity implements GoogleApiClient.ConnectionCa
         Log.i(TAG, "In onStart() - connecting...");
         googleApiClient.connect();
     }
-
+    @Override
+    protected void onResume(){
+        super.onResume();
+        googleApiClient.connect();
+    }
     /*close connection to Google Play Services*/
     @Override
     protected void onStop() {
@@ -78,9 +83,9 @@ public class UploadFile extends Activity implements GoogleApiClient.ConnectionCa
 
     /*Handles onConnectionFailed callbacks*/
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.i(TAG, "Sono in onActivityResult: REQUEST_CODE:" + requestCode +"Expected: "+REQUEST_CODE+ " RESULT_OK: " + resultCode + "Expected: " + RESULT_OK);
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             Log.i(TAG, "In onActivityResult() - connecting...");
             googleApiClient.connect();
@@ -192,6 +197,7 @@ public class UploadFile extends Activity implements GoogleApiClient.ConnectionCa
     public void onConnectionFailed(ConnectionResult result) {
         Log.i(TAG, "Connection failed");
         if (!result.hasResolution()) {
+            Log.i(TAG, "NON C'E SOLUZIONE");
             GoogleApiAvailability.getInstance().getErrorDialog(this, result.getErrorCode(), 0);
             //GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 0).show();
             return;
@@ -199,6 +205,8 @@ public class UploadFile extends Activity implements GoogleApiClient.ConnectionCa
         try {
             Log.i(TAG, "trying to resolve the Connection failed error...");
             result.startResolutionForResult(this, REQUEST_CODE);
+            Log.i(TAG, "Start Resolution for Result ha finito   "+result.isSuccess());
+
         } catch (IntentSender.SendIntentException e) {
             Log.e(TAG, "Exception while starting resolution activity", e);
         }
