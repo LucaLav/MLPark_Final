@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MLPark</string>
     <string name="title_activity_maps">MLPark</string>
+    <string name="title_activity_upload_file">UploadFile</string>
+    <string name="title_activity_retrieve_file">RetrieveFile</string>
+
 </resources>

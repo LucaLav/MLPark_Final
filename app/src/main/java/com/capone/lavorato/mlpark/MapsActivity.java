@@ -1,5 +1,7 @@
 package com.capone.lavorato.mlpark;
 
+import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,7 +18,9 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -35,10 +39,25 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
+
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private static final int MPR = 1;
+
+    //permessi da richiedere
+    private String[] all_permissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.INTERNET,
+            Manifest.permission.GET_ACCOUNTS,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
+    };
 
     private GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
@@ -46,7 +65,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationManager lm;
     boolean hasLocation = false;
     boolean ready = false;
-
     //Task asincrono che aspetta di trovare la posizione
     private class LocationBackground extends AsyncTask<Context, Void, Void> {
 
@@ -73,13 +91,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     LocationBackground lb = new LocationBackground();
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lb.execute(this);
+
+        checkPermission(all_permissions, MPR);
+
+
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
-
+        lb.execute(this);
         LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
             @Override
@@ -141,7 +168,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-                    ready = true;
+                ready = true;
+                try {
+                    addMarker(myLocation);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -163,8 +195,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!checkLocation()){
             return;
         }
-    }
 
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -190,12 +222,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
         recuperaFotoListener();
 
-        String coord = Double.toString(myLocation.latitude)+"\n"+Double.toString(myLocation.longitude);
+        String coord = Double.toString(location.latitude)+"\n"+Double.toString(location.longitude);
 
         //Salva file con coordinate
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
         fos.write(coord.getBytes());
         fos.close();
+
+        //uploadFile(location.latitude, location.longitude);
 
         //Conferma a video delle coordinate
         Toast.makeText(this,"Parcheggio Memorizzato", Toast.LENGTH_SHORT).show();
@@ -304,6 +338,68 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Bitmap bigmarker = Bitmap.createScaledBitmap(b,width,height,false);
 
         return bigmarker;
+    }
+
+    public void downloadFile(View view) {
+        Intent intent = new Intent(this, RetrieveFile.class);
+        startActivity(intent);
+    }
+
+
+    public void uploadFile(Double latitude, Double longitude) {
+
+        Intent intent = new Intent(this, UploadFile.class);
+        intent.putExtra("latitudine", latitude);
+        intent.putExtra("longitudine", longitude);
+        startActivity(intent);
+    }
+
+    public void checkPermission(String[] permission, int request_id){
+
+        if (ContextCompat.checkSelfPermission(this, permission[0]) != PackageManager.PERMISSION_GRANTED) {
+                // Should we show an explanation?
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission[0])) {
+
+                    // Show an explanation to the user *asynchronously* -- don't block
+                    // this thread waiting for the user's response! After the user
+                    // sees the explanation, try again to request the permission.
+
+                } else {
+                    ActivityCompat.requestPermissions(this, permission,request_id);
+
+                    // No explanation needed, we can request the permission.
+                    // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                    // app-defined int constant. The callback method gets the
+                    // result of the request.
+                }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MPR:
+            {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
 }
