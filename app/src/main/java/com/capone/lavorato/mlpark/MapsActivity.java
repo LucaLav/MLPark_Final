@@ -44,41 +44,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
     LocationManager lm;
-    boolean hasLocation = false;
-    boolean ready = false;
-
-    //Task asincrono che aspetta di trovare la posizione
-    private class LocationBackground extends AsyncTask<Context, Void, Void> {
-
-        protected Void doInBackground(Context... params){
-
-            while (!hasLocation || !ready){ //se non trova la posizione o se non è stato schiacciato il bottone "parcheggio", aspetta
-                try {
-                    Log.i("Attesa", "Aspettiamo la posizione");
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            };
-            return null;
-        }
-        protected void onPostExecute(Void val) {
-            try {
-                addMarker(myLocation); //aggiunge marker parcheggio
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-    LocationBackground lb = new LocationBackground();
+    boolean hasLocation = false; //variabile per capire quando la localizzazione è pronta
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        lb.execute(this);
+
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_maps);
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
 
         LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
@@ -141,7 +119,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-                    ready = true;
+                if (hasLocation){
+                    try {
+                        addMarker(myLocation);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else Toast.makeText(getApplicationContext(),"Localizzazione non pronta", Toast.LENGTH_LONG).show();;
             }
         });
 
@@ -163,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!checkLocation()){
             return;
         }
+
     }
 
     @Override
