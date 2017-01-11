@@ -160,6 +160,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+        ImageButton button3 = (ImageButton) findViewById(R.id.imageButton3);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                /*downloadFile();
+
+                LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
+
+                mMap.clear();
+                mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
+*/
+            }
+        });
 
         if (!checkLocation()){
             return;
@@ -316,8 +332,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return bigmarker;
     }
 
-    public void downloadFile(View view) {
+    public void downloadFile() {
         Intent intent = new Intent(this, RetrieveFile.class);
+
         startActivity(intent);
     }
 

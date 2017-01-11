@@ -1,20 +1,25 @@
 package com.capone.lavorato.mlpark;
 import android.app.Activity;
 import android.content.Intent; import android.content.IntentSender; import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil; import com.google.android.gms.common.api.GoogleApiClient; import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveApi.DriveContentsResult; import com.google.android.gms.drive.DriveApi.DriveIdResult; import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
+
 import java.io.BufferedReader; import java.io.IOException;
 import java.io.InputStreamReader;
 /*downloads a text file's contents, reads it and displays
 the contents in a new activity*/
-public class RetrieveFile extends Activity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class RetrieveFile extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     /*get this id from your google drive on the web*/
     private static final String EXISTING_FILE_ID = "0B_ylYiT0PYlPUnp1dUk3cEFLRVU";
     private static final int REQUEST_CODE = 102;
@@ -56,7 +61,47 @@ public class RetrieveFile extends Activity implements
     /*handles connection callbacks*/
     @Override
     public void onConnected(Bundle bundle) {
-        Drive.DriveApi.fetchDriveId(googleApiClient, EXISTING_FILE_ID).setResultCallback(idCallback);
+
+        Drive.DriveApi.getAppFolder(googleApiClient).listChildren(googleApiClient).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+            @Override
+            public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                MetadataBuffer mdb = metadataBufferResult.getMetadataBuffer();
+                Metadata meta = mdb.get(0);
+                DriveFile file = meta.getDriveId().asDriveFile();
+                PendingResult<DriveContentsResult> pendingResult = file.open(googleApiClient, DriveFile.MODE_READ_ONLY, null);
+            /*the callback receives the contents in the result*/
+
+                pendingResult.setResultCallback(new ResultCallback<DriveContentsResult>() {
+                    public String fileAsString;
+
+                    @Override
+                    public void onResult(DriveContentsResult result) {
+                        DriveContents fileContents = result.getDriveContents();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(fileContents.getInputStream()));
+                        StringBuilder builder = new StringBuilder();
+                        String oneLine;
+                        Log.i(TAG, "reading input stream and building string...");
+                        try {
+                            while ((oneLine = reader.readLine()) != null) {
+                                builder.append(oneLine);
+                            }
+                            fileAsString = builder.toString();
+                        } catch (IOException e) {
+                            Log.e(TAG, "IOException while reading from the stream", e);
+                        }
+                        fileContents.discard(googleApiClient);
+                        Intent intent = new Intent(RetrieveFile.this, MapsActivity.class);
+                        intent.putExtra("coordinate", fileAsString);
+                        startActivity(intent);
+                    }
+                });
+            }
+        });
+
+
+        DriveId did = Drive.DriveApi.getAppFolder(googleApiClient).getDriveId();
+
+        Drive.DriveApi.fetchDriveId(googleApiClient, did.toString()).setResultCallback(idCallback);
     }
 
     /*handles suspended connection callbacks*/
@@ -100,7 +145,7 @@ public class RetrieveFile extends Activity implements
                     }
                     fileContents.discard(googleApiClient);
                     Intent intent = new Intent(RetrieveFile.this, MapsActivity.class);
-                    intent.putExtra("text", fileAsString);
+                    intent.putExtra("coordinate", fileAsString);
                     startActivity(intent);
                 }
             });
