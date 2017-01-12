@@ -50,13 +50,12 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".UploadFile"
-            android:label="@string/title_activity_upload_file" >
-        </activity>
-        <activity
-            android:name=".RetrieveFile"
-            android:label="@string/title_activity_retrieve_file" />
+        <activity android:name=".CreateFileInAppFolderActivity"
+            android:label="CreateFileActivity"/>
+        <activity android:name=".EditContentsActivity"
+            android:label="EditActivity"/>
+        <activity android:name=".DownloadContentsActivity"
+            android:label="DownloadActivity"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

@@ -1,10 +1,10 @@
 package com.capone.lavorato.mlpark;
 
-import android.*;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -12,7 +12,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -20,8 +19,6 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -43,6 +40,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.StringTokenizer;
 
+import static java.lang.Double.parseDouble;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final int MPR = 1;
@@ -56,7 +55,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
     };
-
+    Double lat, lng;
     private GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
@@ -92,7 +91,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onProviderDisabled(String provider) {
             }
         };
-
         LocationListener locationListenerNet = new LocationListener() { //Listener NETWORK
 
             @Override
@@ -151,6 +149,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"Hai premuto il tasto, complimenti", Toast.LENGTH_LONG).show();
 
                 try {
                     retrieveMarker();
@@ -161,19 +160,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         ImageButton button3 = (ImageButton) findViewById(R.id.imageButton3);
-        button2.setOnClickListener(new View.OnClickListener() {
+        button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                /*downloadFile();
+                LatLng location = downloadFile();
 
-                LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
+                //LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
 
                 mMap.clear();
                 mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
-*/
+
             }
         });
 
@@ -245,8 +244,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         StringTokenizer coordinate = new StringTokenizer(fileContent.toString());
+        Toast.makeText(this,"Ricerca di un parcheggio su Drive", Toast.LENGTH_LONG).show();
 
-        LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
+        //LatLng location = downloadFile();
+
+        LatLng location = new LatLng(parseDouble(coordinate.nextToken()), parseDouble(coordinate.nextToken()));
 
         Toast.makeText(this,"Parcheggio del "+coordinate.nextToken()+" alle ore "+coordinate.nextToken(), Toast.LENGTH_LONG).show();
 
@@ -332,19 +334,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return bigmarker;
     }
 
-    public void downloadFile() {
-        Intent intent = new Intent(this, RetrieveFile.class);
+    public LatLng downloadFile() {
+        Intent intent = new Intent(this, DownloadContentsActivity.class);
+        startActivityForResult(intent, 1);
 
-        startActivity(intent);
+        Double latitudine = parseDouble(getSharedPreferences("coordinate",Context.MODE_PRIVATE).getString("latitude","20"));
+        Double longitudine = parseDouble(getSharedPreferences("coordinate",Context.MODE_PRIVATE).getString("longitude","20"));
+
+        LatLng capone = new LatLng(latitudine,longitudine);
+
+
+        return capone;
     }
 
 
     public void uploadFile(Double latitude, Double longitude) {
 
-        Intent intent = new Intent(this, UploadFile.class);
-        intent.putExtra("latitudine", latitude);
-        intent.putExtra("longitudine", longitude);
+
+        Intent intent = new Intent(this, EditContentsActivity.class);
+        intent.putExtra("latitude",latitude);
+        intent.putExtra("longitude",longitude);
         startActivity(intent);
+
     }
 
     public void checkPermission(String[] permission, int request_id){
@@ -395,4 +406,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+
+            Double x = data.getDoubleExtra("latitude", 0.0);
+            Double y = data.getDoubleExtra("longitude", 0.0);
+
+            SharedPreferences sharedPref = getSharedPreferences("coordinate",Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("latitude", x.toString());
+            editor.putString("longitude", y.toString());
+            editor.commit();
+        }
+    }
 }
