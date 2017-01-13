@@ -51,11 +51,14 @@
         </activity>
 
         <activity android:name=".CreateFileInAppFolderActivity"
-            android:label="CreateFileActivity"/>
+            android:label="CreateFileActivity"
+            android:theme="@style/Theme.Transparent"/>
         <activity android:name=".EditContentsActivity"
-            android:label="EditActivity"/>
+            android:label="EditActivity"
+            android:theme="@style/Theme.Transparent"/>
         <activity android:name=".DownloadContentsActivity"
-            android:label="DownloadActivity"/>
+            android:label="DownloadActivity"
+            android:theme="@style/Theme.Transparent"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

@@ -39,9 +39,6 @@ import com.google.android.gms.drive.query.SearchableField;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * An activity that creates a text file in the App Folder.
- */
 public class CreateFileInAppFolderActivity extends BaseDemoActivity {
     @Override
     public void onConnected(Bundle connectionHint) {
@@ -123,6 +120,7 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
                 return;
             }
             showMessage("File correttamente creato e modificato");
+            finish();
         }
     }
 }

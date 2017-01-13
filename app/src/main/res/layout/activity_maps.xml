@@ -17,12 +17,12 @@
 
     <ImageButton
         android:src="@mipmap/park_btn"
-        android:id="@+id/imageButton"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
+        android:id="@+id/imageButton4"
         android:background="@android:color/transparent"
         android:layout_width="45dp"
-        android:layout_height="45dp" />
+        android:layout_height="45dp"
+        android:layout_marginTop="500dp"
+        android:layout_marginLeft="10dp" />
 
     <ImageButton
         android:src="@mipmap/where_btn"
@@ -41,6 +41,15 @@
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp" />
+
+    <ImageButton
+        android:src="@mipmap/park_btn"
+        android:id="@+id/imageButton"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        android:layout_width="45dp"
+        android:layout_height="45dp" />
 
 
 </FrameLayout>

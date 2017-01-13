@@ -24,11 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.StringTokenizer;
 
-/**
- * An activity to illustrate how to edit contents of a Drive file.
- */
 public class DownloadContentsActivity extends BaseDemoActivity {
 
     private static final String TAG = "EditContentsActivity";
@@ -60,6 +58,12 @@ public class DownloadContentsActivity extends BaseDemoActivity {
             }else{
                 Log.e("Buffer", "PIENO");
                 DriveFile myfile = metadataBufferResult.getMetadataBuffer().get(0).getDriveId().asDriveFile();
+
+                //recupero data parcheggio
+                SimpleDateFormat orario_parcheggio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                String parkdate = orario_parcheggio.format(metadataBufferResult.getMetadataBuffer().get(0).getModifiedDate());
+                StringTokenizer data = new StringTokenizer(parkdate);
+                showMessage("Parcheggio del "+data.nextToken()+" alle ore "+data.nextToken());
 
                 new RetrieveContentsAsyncTask(DownloadContentsActivity.this).execute(myfile);
             }
@@ -107,8 +111,6 @@ public class DownloadContentsActivity extends BaseDemoActivity {
             intent.putExtra("latitude", Double.parseDouble(coordinate.nextToken()));
             intent.putExtra("longitude", Double.parseDouble(coordinate.nextToken()));
 
-            //getIntent().putExtra("latitude", Double.parseDouble(coordinate.nextToken()));
-            //getIntent().putExtra("longitude", Double.parseDouble(coordinate.nextToken()));
             setResult(RESULT_OK, intent);
 
             driveContents.discard(getGoogleApiClient());
@@ -122,7 +124,8 @@ public class DownloadContentsActivity extends BaseDemoActivity {
                 showMessage("Error while reading contents");
                 return;
             }
-            showMessage("File correttamente modificato");
+            showMessage("File correttamente scaricato");
+            finish();
         }
     }
 }

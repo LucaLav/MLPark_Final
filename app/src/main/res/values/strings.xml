@@ -4,4 +4,15 @@
     <string name="title_activity_upload_file">UploadFile</string>
     <string name="title_activity_retrieve_file">RetrieveFile</string>
 
+    <string name="info_dialog_title">MLPark v1.0</string>
+    <string name="info_dialog_text">Applicazione per progetto di Ingegneria del Software 2\n\nDevelopers:\nEmanuele Capone M63/529\nLuca Lavorato</string>
+
+
+    <string name="errore_localizzazione">Localizzazione non pronta. Attendere e riprovare.</string>
+    <string name="errore_foto">Foto non esistente!</string>
+    <string name="errore_localizzazione_disattivata">La Localizzazione GPS è settata su OFF.\nAbilitare la Localizzazione per usare questa app</string>
+
+
+
+
 </resources>

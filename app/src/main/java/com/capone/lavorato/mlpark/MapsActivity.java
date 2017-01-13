@@ -55,7 +55,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
     };
-    Double lat, lng;
+
     private GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
@@ -140,7 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         e.printStackTrace();
                     }
                 }
-                else Toast.makeText(getApplicationContext(),"Localizzazione non pronta", Toast.LENGTH_LONG).show();;
+                else Toast.makeText(getApplicationContext(),R.string.errore_localizzazione, Toast.LENGTH_LONG).show();;
             }
         });
 
@@ -149,8 +149,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),"Hai premuto il tasto, complimenti", Toast.LENGTH_LONG).show();
-
                 try {
                     retrieveMarker();
                 } catch (IOException e) {
@@ -169,9 +167,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()),Double.parseDouble(coordinate.nextToken()));
 
                 mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
+                mMap.addMarker(new MarkerOptions().position(location).title("La tua auto(i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo((float) (0.9*mMap.getMaxZoomLevel())));
+
+            }
+        });
+
+        //bottone info
+        ImageButton button4 = (ImageButton) findViewById(R.id.imageButton4);
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MapsActivity.this)
+                        .setTitle(R.string.info_dialog_title)
+                        .setMessage(R.string.info_dialog_text);
+                builder.create();
+                builder.show();
 
             }
         });
@@ -210,20 +224,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SimpleDateFormat orario_parcheggio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Calendar c = Calendar.getInstance();
         String parkdate = orario_parcheggio.format(c.getTime());
-
         String coordEparkdate = Double.toString(location.latitude)+"\n"+Double.toString(location.longitude)+"\n"+parkdate;
-
 
         //Salva file con coordinate
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
         fos.write(coordEparkdate.getBytes());
         fos.close();
 
+        //upload file localizzazione su Drive
         uploadFile(location.latitude, location.longitude);
 
-        //Conferma a video delle coordinate
-        Toast.makeText(this,"Parcheggio Memorizzato", Toast.LENGTH_SHORT).show();
-
+        //ScattaFoto
         MyDialog dialog = new MyDialog();
         dialog.show(getFragmentManager(),"123");
     }
@@ -244,14 +255,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         StringTokenizer coordinate = new StringTokenizer(fileContent.toString());
-        Toast.makeText(this,"Ricerca di un parcheggio su Drive", Toast.LENGTH_LONG).show();
-
-        //LatLng location = downloadFile();
 
         LatLng location = new LatLng(parseDouble(coordinate.nextToken()), parseDouble(coordinate.nextToken()));
-
         Toast.makeText(this,"Parcheggio del "+coordinate.nextToken()+" alle ore "+coordinate.nextToken(), Toast.LENGTH_LONG).show();
-
 
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(location).title("La tua Auto (i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
@@ -283,7 +289,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         startActivity(i);
                     }
                     else{
-                        Toast.makeText(getApplicationContext(),"Foto non esistente", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(),R.string.errore_foto, Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -296,6 +302,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
+
     private boolean checkLocation() {
         if(!isLocationEnabled())
             showAlert();
@@ -306,8 +313,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void showAlert() {
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Abilita Localizzazione")
-                .setMessage("L'impostazione di localizzazione GPS è settata su 'Off'.\nAbilitare la Localizzazione per " +
-                        "usare questa app")
+                .setMessage(R.string.errore_localizzazione_disattivata)
                 .setPositiveButton("Impostazioni", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface paramDialogInterface, int paramInt) {
@@ -326,9 +332,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Bitmap iconScaler(int height, int width){
 
         BitmapDrawable  bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.mipmap.poffy_car);
-
         Bitmap b = bitmapdraw.getBitmap();
-
         Bitmap bigmarker = Bitmap.createScaledBitmap(b,width,height,false);
 
         return bigmarker;
@@ -341,21 +345,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Double latitudine = parseDouble(getSharedPreferences("coordinate",Context.MODE_PRIVATE).getString("latitude","20"));
         Double longitudine = parseDouble(getSharedPreferences("coordinate",Context.MODE_PRIVATE).getString("longitude","20"));
 
-        LatLng capone = new LatLng(latitudine,longitudine);
+        LatLng coord = new LatLng(latitudine,longitudine);
 
-
-        return capone;
+        return coord;
     }
 
 
     public void uploadFile(Double latitude, Double longitude) {
 
-
         Intent intent = new Intent(this, EditContentsActivity.class);
         intent.putExtra("latitude",latitude);
         intent.putExtra("longitude",longitude);
         startActivity(intent);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+
+            Double x = data.getDoubleExtra("latitude", 0.0);
+            Double y = data.getDoubleExtra("longitude", 0.0);
+
+            SharedPreferences sharedPref = getSharedPreferences("coordinate",Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("latitude", x.toString());
+            editor.putString("longitude", y.toString());
+            editor.commit();
+        }
     }
 
     public void checkPermission(String[] permission, int request_id){
@@ -378,7 +394,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -403,21 +418,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             // other 'case' lines to check for other
             // permissions this app might request
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
-
-            Double x = data.getDoubleExtra("latitude", 0.0);
-            Double y = data.getDoubleExtra("longitude", 0.0);
-
-            SharedPreferences sharedPref = getSharedPreferences("coordinate",Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("latitude", x.toString());
-            editor.putString("longitude", y.toString());
-            editor.commit();
         }
     }
 }

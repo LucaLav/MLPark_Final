@@ -3,16 +3,21 @@ package com.capone.lavorato.mlpark;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+
+import static android.app.Activity.RESULT_OK;
 
 public class MyDialog extends DialogFragment{
 
@@ -23,24 +28,24 @@ public class MyDialog extends DialogFragment{
     public Dialog onCreateDialog (Bundle savedInstanceState){
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
-                .setTitle("Posizione Memorizzata")
-                .setMessage("Vuoi scattare una foto (non a te, strunz.)");
+                .setTitle("Posizione Memorizzata correttamente")
+                .setMessage("Vuoi scattare una foto all'auto parcheggiata per ritrovarla più semplicemente?");
 
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
                 //Apri fotocamera e scatta foto
                 dispatchTakePictureIntent();
-
             }
-        })
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        deleteFoto();
-                    }
-                });
+        }).setNegativeButton("NO", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Elimina foto scattate in precedenza
+                deleteFoto();
+            }
+        });
 
         return builder.create();
     }
@@ -48,14 +53,15 @@ public class MyDialog extends DialogFragment{
     //FOTO - INTENT che gestisce
     private void dispatchTakePictureIntent() {
 
+        //Elimina foto scattate in precedenza
         deleteFoto();
 
+        File photoFile = null;
         //INTENT CREAZIONE FOTO NUOVA
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
@@ -101,5 +107,4 @@ public class MyDialog extends DialogFragment{
         }
 
     }
-
 }

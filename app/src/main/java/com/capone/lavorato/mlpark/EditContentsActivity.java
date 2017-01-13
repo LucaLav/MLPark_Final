@@ -14,6 +14,9 @@
 
 package com.capone.lavorato.mlpark;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,13 +41,11 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
-/**
- * An activity to illustrate how to edit contents of a Drive file.
- */
 public class EditContentsActivity extends BaseDemoActivity {
 
     private static final String TAG = "EditContentsActivity";
@@ -107,8 +108,13 @@ public class EditContentsActivity extends BaseDemoActivity {
                 DriveContents driveContents = driveContentsResult.getDriveContents();
                 OutputStream outputStream = driveContents.getOutputStream();
                 outputStream.write((getIntent().getDoubleExtra("latitude", 0.0)+"\n"+getIntent().getDoubleExtra("longitude", 0.0)).getBytes());
+
                 com.google.android.gms.common.api.Status status =
                         driveContents.commit(getGoogleApiClient(), null).await();
+
+
+                Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
+
                 return status.getStatus().isSuccess();
             } catch (IOException e) {
                 Log.e(TAG, "IOException while appending to the output stream", e);
@@ -124,6 +130,7 @@ public class EditContentsActivity extends BaseDemoActivity {
                 return;
             }
             showMessage("File correttamente modificato");
+            finish();
         }
     }
 }

@@ -75,7 +75,7 @@ public abstract class BaseDemoActivity extends Activity implements
      * activities itself.
      */
     @Override
-    protected void onResume() {
+    protected void onStart() {
         super.onResume();
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
