@@ -38,6 +38,8 @@ import com.google.android.gms.drive.query.SearchableField;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 public class CreateFileInAppFolderActivity extends BaseDemoActivity {
     @Override
@@ -56,6 +58,7 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
                 showMessage("Error while trying to create new file contents");
                 return;
             }
+
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                     .setTitle("VERYLastParkPositionMLPARK.txt")
                     .setMimeType("text/plain")
