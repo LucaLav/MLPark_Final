@@ -46,6 +46,7 @@ import static java.lang.Double.parseDouble;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final int MPR = 1;
+    //mlmlml
 
     //permessi da richiedere
     private String[] all_permissions = {
