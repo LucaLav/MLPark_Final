@@ -56,6 +56,12 @@
         <activity android:name=".EditContentsActivity"
             android:label="EditActivity"
             android:theme="@style/Theme.Transparent"/>
+        <activity android:name=".CreateImageActivity"
+            android:label="CreateFileActivity"
+            android:theme="@style/Theme.Transparent"/>
+        <activity android:name=".EditImageActivity"
+            android:label="EditActivity"
+            android:theme="@style/Theme.Transparent"/>
         <activity android:name=".DownloadContentsActivity"
             android:label="DownloadActivity"
             android:theme="@style/Theme.Transparent"/>

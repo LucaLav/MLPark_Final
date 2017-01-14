@@ -1,25 +1,9 @@
-/**
- * Copyright 2013 Google Inc. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.capone.lavorato.mlpark;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -28,7 +12,6 @@ import android.util.Log;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
-import com.google.android.gms.drive.DriveApi.DriveContentsResult;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.MetadataBuffer;
@@ -36,9 +19,17 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
-public class EditContentsActivity extends BaseDemoActivity {
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
-    private static final String TAG = "EditContentsActivity";
+/**
+ * Created by luca on 14/01/17.
+ */
+
+public class EditImageActivity extends BaseDemoActivity {
+    private static final String TAG = "EditImageActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -47,14 +38,15 @@ public class EditContentsActivity extends BaseDemoActivity {
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
-        Query query_txt = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.TITLE, "VERYLastParkPositionMLPARK.txt"))
+
+        Query query_img = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg"))
                 .build();
 
-        Drive.DriveApi.query(getGoogleApiClient(), query_txt).setResultCallback(queryTxtCallback);
+        Drive.DriveApi.query(getGoogleApiClient(), query_img).setResultCallback(queryImgCallback);
     }
 
-    final ResultCallback<DriveApi.MetadataBufferResult> queryTxtCallback = new ResultCallback<DriveApi.MetadataBufferResult>() {
+    final ResultCallback<DriveApi.MetadataBufferResult> queryImgCallback = new ResultCallback<DriveApi.MetadataBufferResult>() {
         @Override
         public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
             MetadataBuffer mb = metadataBufferResult.getMetadataBuffer();
@@ -63,23 +55,21 @@ public class EditContentsActivity extends BaseDemoActivity {
 
             if (mb.getCount() == 0){
                 Log.e("Buffer", "VUOTO");
-                Intent intent = new Intent(getApplicationContext(), CreateFileInAppFolderActivity.class);
-                intent.putExtra("latitude",getIntent().getDoubleExtra("latitudine",0.0));
-                intent.putExtra("longitude",getIntent().getDoubleExtra("longitudine",0.0));
-
+                Intent intent = new Intent(getApplicationContext(), CreateImageActivity.class);
+                intent.putExtra("imageFile", getIntent().getParcelableExtra("imageFile"));
                 startActivity(intent);
             }else{
                 Log.e("Buffer", "PIENO");
                 DriveFile myfile = metadataBufferResult.getMetadataBuffer().get(0).getDriveId().asDriveFile();
-                new EditCoordinatesAsyncTask(EditContentsActivity.this).execute(myfile);
+                new EditImageActivity.EditImageAsyncTask(EditImageActivity.this).execute(myfile);
             }
             mb.release();
         }
     };
 
-    public class EditCoordinatesAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
+    public class EditImageAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
 
-        public EditCoordinatesAsyncTask(Context context) {
+        public EditImageAsyncTask(Context context) {
             super(context);
         }
 
@@ -88,16 +78,19 @@ public class EditContentsActivity extends BaseDemoActivity {
             DriveFile file = args[0];
             Log.e("Resource ID del file passato ad AsyncTask", file.getDriveId().getResourceId());
             try {
-                DriveContentsResult driveContentsResult = file.open(
+                DriveApi.DriveContentsResult driveContentsResult = file.open(
                         getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null).await();
                 Log.e("Status", ""+driveContentsResult.getStatus()
                 );
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
+                Bitmap image = getIntent().getParcelableExtra("imageFile");
                 DriveContents driveContents = driveContentsResult.getDriveContents();
                 OutputStream outputStream = driveContents.getOutputStream();
-                outputStream.write((getIntent().getDoubleExtra("latitude", 0.0)+"\n"+getIntent().getDoubleExtra("longitude", 0.0)).getBytes());
+                ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.PNG, 100, bitmapStream);
+                outputStream.write((bitmapStream.toByteArray()));
 
                 com.google.android.gms.common.api.Status status =
                         driveContents.commit(getGoogleApiClient(), null).await();
@@ -116,11 +109,13 @@ public class EditContentsActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while editing contents");
+                showMessage("Errore nell'upload dell'immagine");
                 return;
             }
             showMessage("File correttamente modificato");
             finish();
         }
     }
+
+
 }

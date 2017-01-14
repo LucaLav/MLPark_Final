@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,7 +31,7 @@ public class MyDialog extends DialogFragment{
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle("Posizione Memorizzata correttamente")
-                .setMessage("Vuoi scattare una foto all'auto parcheggiata per ritrovarla più semplicemente?");
+                .setMessage("Vuoi scattare una foto al parcheggio per ritrovarlo più semplicemente?");
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
         {
@@ -75,6 +77,7 @@ public class MyDialog extends DialogFragment{
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                uploadImageFile(photoFile);
             }
         }
     }
@@ -105,6 +108,13 @@ public class MyDialog extends DialogFragment{
             }
 
         }
+
+    }
+    public void uploadImageFile(File photo) {
+        Bitmap image = BitmapFactory.decodeFile(photo.getPath());
+        Intent imgToDrive = new Intent(getContext(), EditImageActivity.class);
+        imgToDrive.putExtra("imageFile", image);
+        startActivity(imgToDrive);
 
     }
 }

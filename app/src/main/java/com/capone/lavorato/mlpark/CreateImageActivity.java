@@ -16,6 +16,7 @@ package com.capone.lavorato.mlpark;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -36,12 +37,13 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-public class CreateFileInAppFolderActivity extends BaseDemoActivity {
+public class CreateImageActivity extends BaseDemoActivity {
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
@@ -52,29 +54,28 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
     // [START drive_contents_callback]
     final private ResultCallback<DriveContentsResult> driveContentsCallback =
             new ResultCallback<DriveContentsResult>() {
-        @Override
-        public void onResult(DriveContentsResult result) {
-            if (!result.getStatus().isSuccess()) {
-                showMessage("Error while trying to create new file contents");
-                return;
-            }
+                @Override
+                public void onResult(DriveContentsResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create new file contents");
+                        return;
+                    }
+                    MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                            .setTitle("LPPMLPark_image.jpg")
+                            .setMimeType("image/jpeg")
+                            .build();
 
-            MetadataChangeSet changeSetTxt = new MetadataChangeSet.Builder()
-                    .setTitle("VERYLastParkPositionMLPARK.txt")
-                    .setMimeType("text/plain")
-                    .build();
+                    Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
 
-            Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
+                    Drive.DriveApi.getRootFolder(getGoogleApiClient())
+                            .createFile(getGoogleApiClient(), changeSet, result
+                                    .getDriveContents()).setResultCallback(imgCallback);
 
-            Drive.DriveApi.getRootFolder(getGoogleApiClient())
-                    .createFile(getGoogleApiClient(), changeSetTxt, result
-                            .getDriveContents()).setResultCallback(txtCallback);
-
-        }
-    };
+                }
+            };
     // [END drive_contents_callback]
 
-    final private ResultCallback<DriveFileResult> txtCallback = new ResultCallback<DriveFileResult>() {
+    final private ResultCallback<DriveFileResult> imgCallback = new ResultCallback<DriveFileResult>() {
         @Override
         public void onResult(DriveFileResult result) {
             if (!result.getStatus().isSuccess()) {
@@ -85,13 +86,13 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
             showMessage("Created a file in Root Folder: "
                     + result.getDriveFile().getDriveId());
             DriveFile file = result.getDriveFile();
-            new EditCoordinatesAsyncTask(CreateFileInAppFolderActivity.this).execute(file);
+            new EditImageAsyncTask(CreateImageActivity.this).execute(file);
         }
     };
 
-    public class EditCoordinatesAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
+    public class EditImageAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
 
-        public EditCoordinatesAsyncTask(Context context) {
+        public EditImageAsyncTask(Context context) {
             super(context);
         }
 
@@ -104,10 +105,13 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
-                DriveContents driveContents = driveContentsResult.getDriveContents();
 
+                Bitmap image = getIntent().getParcelableExtra("imageFile");
+                DriveContents driveContents = driveContentsResult.getDriveContents();
+                ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.JPEG, 100, bitmapStream);
                 OutputStream outputStream = driveContents.getOutputStream();
-                outputStream.write((getIntent().getDoubleExtra("latitude", 0.0)+"\n"+getIntent().getDoubleExtra("longitude", 0.0)).getBytes());
+                outputStream.write((bitmapStream.toByteArray()));
                 com.google.android.gms.common.api.Status status =
                         driveContents.commit(getGoogleApiClient(), null).await();
                 return status.getStatus().isSuccess();

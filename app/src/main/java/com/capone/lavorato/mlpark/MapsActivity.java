@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -232,6 +233,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //upload file localizzazione su Drive
         uploadFile(location.latitude, location.longitude);
+
     }
 
     //Funzione che recupera marcatore
