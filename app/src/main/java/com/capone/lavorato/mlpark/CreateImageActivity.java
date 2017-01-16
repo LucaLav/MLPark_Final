@@ -17,6 +17,7 @@ package com.capone.lavorato.mlpark;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -38,6 +39,7 @@ import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -60,12 +62,13 @@ public class CreateImageActivity extends BaseDemoActivity {
                         showMessage("Error while trying to create new file contents");
                         return;
                     }
+
                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                             .setTitle("LPPMLPark_image.jpg")
                             .setMimeType("image/jpeg")
                             .build();
 
-                    Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
+                    Log.e("STATUS_CREAZIONE IMG", "Sta per aprire la cartella Root e creare il file");
 
                     Drive.DriveApi.getRootFolder(getGoogleApiClient())
                             .createFile(getGoogleApiClient(), changeSet, result
@@ -106,7 +109,12 @@ public class CreateImageActivity extends BaseDemoActivity {
                     return false;
                 }
 
-                Bitmap image = getIntent().getParcelableExtra("imageFile");
+                Log.e("ATTENZIONE", "sto in task async immagine");
+
+                //Bitmap image = getIntent().getParcelableExtra("imageFile");
+                File immagine = (File)getIntent().getExtras().get("imageFile");
+                Bitmap image = BitmapFactory.decodeFile(immagine.getPath());
+
                 DriveContents driveContents = driveContentsResult.getDriveContents();
                 ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
                 image.compress(Bitmap.CompressFormat.JPEG, 100, bitmapStream);

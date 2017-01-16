@@ -65,6 +65,9 @@
         <activity android:name=".DownloadContentsActivity"
             android:label="DownloadActivity"
             android:theme="@style/Theme.Transparent"/>
+        <activity android:name=".DownloadImageActivity"
+            android:label="DownloadActivity"
+            android:theme="@style/Theme.Transparent"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

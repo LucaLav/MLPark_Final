@@ -6,18 +6,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -45,7 +49,6 @@ import static java.lang.Double.parseDouble;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final int MPR = 1;
-    //mlmlml
 
     //permessi da richiedere
     private String[] all_permissions = {
@@ -57,11 +60,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Manifest.permission.CAMERA
     };
 
-    private GoogleMap mMap;
+    private static GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
     LocationManager lm;
     boolean hasLocation = false;
+    static final int REQUEST_IMAGE_CAPTURE = 2;
+    static final int DOWNLOAD_FILE = 3;
+    static final int UPLOAD_IMAGE = 4;
+    String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -184,9 +191,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        //Pulsante per recupero foto da Drive
+        ImageButton button5 = (ImageButton) findViewById(R.id.imageButton5);
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
+                startActivity(imageFromDrive);
+
+            }
+        });
+
         if (!checkLocation()){
             return;
         }
+    }
+
+    public void uploadImageFile(File photo) {
+
+        Intent imgToDrive = new Intent(this, EditImageActivity.class);
+        imgToDrive.putExtra("imageFile",photo);
+
+        startActivityForResult(imgToDrive,UPLOAD_IMAGE);
     }
 
     @Override
@@ -225,14 +252,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fos.write(coordEparkdate.getBytes());
         fos.close();
 
-        //ScattaFoto
-        MyDialog dialog = new MyDialog();
-        dialog.show(getFragmentManager(),"123");
+        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
 
         //upload file localizzazione su Drive
         uploadFile(location.latitude, location.longitude);
 
+        dispatchTakePictureIntent();
     }
+
+    private void dispatchTakePictureIntent() {
+
+        File photoFile = null;
+        //INTENT CREAZIONE FOTO NUOVA
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(this.getPackageManager()) != null) {
+            // Create the File where the photo should go
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+            }
+
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+
+    }
+
+    //ELIMINA FOTO VECCHIA
+    private void deleteFoto(){
+
+        File Dirvecchiafoto = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if(Dirvecchiafoto.isDirectory()){
+
+            String[] children = Dirvecchiafoto.list();
+
+            for (int i = 0; i < children.length; i++)
+            {
+                new File(Dirvecchiafoto, children[i]).delete();
+            }
+
+        }
+
+    }
+
+    //Crea File Immagine
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = new File (storageDir, "lastpark.jpg");
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
+
 
     //Funzione che recupera marcatore
     public void retrieveMarker() throws IOException {
@@ -335,7 +418,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void downloadFile() {
 
         Intent intent = new Intent(this, DownloadContentsActivity.class);
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, DOWNLOAD_FILE);
 
     }
 
@@ -351,7 +434,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+        if (requestCode == DOWNLOAD_FILE && resultCode == RESULT_OK && data != null) {
 
             LatLng ll = new LatLng(data.getDoubleExtra("latitude", 0.0),data.getDoubleExtra("longitude", 0.0));
 
@@ -359,6 +442,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.addMarker(new MarkerOptions().position(ll).title("La tua auto(i)").icon(BitmapDescriptorFactory.fromBitmap(iconScaler(400,400))));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ll,(float) (0.9*mMap.getMaxZoomLevel())));
         }
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+                File[] listFiles= getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
+                uploadImageFile(listFiles[0]);
+        }
+
+        if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_CANCELED){
+            deleteFoto();
+        }
+
+        if(requestCode == UPLOAD_IMAGE ){//&& resultCode == RESULT_OK) {
+
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE); //animazione caricamento
+
+        }
+
     }
 
     public void checkPermission(String[] permission, int request_id){

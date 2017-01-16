@@ -39,8 +39,11 @@ public class EditImageActivity extends BaseDemoActivity {
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
 
+        Log.e("QUERY IMG", "QUERY");
+
+
         Query query_img = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg"))
+                .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg")) //LPPMLPark_image.jpg
                 .build();
 
         Drive.DriveApi.query(getGoogleApiClient(), query_img).setResultCallback(queryImgCallback);
@@ -56,7 +59,10 @@ public class EditImageActivity extends BaseDemoActivity {
             if (mb.getCount() == 0){
                 Log.e("Buffer", "VUOTO");
                 Intent intent = new Intent(getApplicationContext(), CreateImageActivity.class);
-                intent.putExtra("imageFile", getIntent().getParcelableExtra("imageFile"));
+                //intent.putExtra("imageFile", getIntent().getParcelableExtra("imageFile"));
+                File immagine = (File)getIntent().getExtras().get("imageFile");
+                intent.putExtra("imageFile", immagine);
+
                 startActivity(intent);
             }else{
                 Log.e("Buffer", "PIENO");
@@ -85,7 +91,11 @@ public class EditImageActivity extends BaseDemoActivity {
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
-                Bitmap image = getIntent().getParcelableExtra("imageFile");
+                //Bitmap image = getIntent().getParcelableExtra("imageFile");
+
+                File immagine = (File)getIntent().getExtras().get("imageFile");
+                Bitmap image = BitmapFactory.decodeFile(immagine.getPath());
+
                 DriveContents driveContents = driveContentsResult.getDriveContents();
                 OutputStream outputStream = driveContents.getOutputStream();
                 ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();

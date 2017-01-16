@@ -2,8 +2,11 @@ package com.capone.lavorato.mlpark;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.BoolRes;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -21,6 +24,10 @@ import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,9 +46,14 @@ public class DownloadImageActivity extends BaseDemoActivity {
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
+        Log.e("query","img");
+
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg"))
                 .build();
+
+        Log.e("query","img");
+
 
         Drive.DriveApi.query(getGoogleApiClient(), query).setResultCallback(queryCallback);
     }
@@ -86,22 +98,34 @@ public class DownloadImageActivity extends BaseDemoActivity {
             DriveContents driveContents = driveContentsResult.getDriveContents();
             InputStream inputStream = driveContents.getInputStream();
 
+
+            File filesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File imageFile = new File(filesDir, "lastpark_drive.jpg");
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            OutputStream os = null;
+            try {
+                os = new FileOutputStream(imageFile);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
             Intent i = new Intent();
             i.setAction(android.content.Intent.ACTION_VIEW);
 
-            //i.setDataAndType(Uri.fromFile(driveContents.getDriveId().asDriveFile()), "image/*");
+            Log.e("immagine","img");
+            i.setDataAndType(Uri.fromFile(imageFile), "image/*");
 
             //lancia intent galleria per visualizzare la foto
             startActivity(i);
 
             //LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()), Double.parseDouble(coordinate.nextToken()));
 
-            Intent intent = new Intent();
+            //Intent intent = new Intent();
 
             //intent.putExtra("latitude", Double.parseDouble(coordinate.nextToken()));
             //intent.putExtra("longitude", Double.parseDouble(coordinate.nextToken()));
 
-            setResult(RESULT_OK, intent);
+            //setResult(RESULT_OK, intent);
 
             driveContents.discard(getGoogleApiClient());
             return true;
