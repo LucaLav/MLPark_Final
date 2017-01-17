@@ -5,18 +5,6 @@
     android:layout_height="match_parent"
     tools:context="com.capone.lavorato.mlpark.MapsActivity" >
 
-    <RelativeLayout
-    android:id="@+id/loadingPanel"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center" >
-
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true" />
-    </RelativeLayout>
-
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -25,15 +13,6 @@
         tools:context="com.capone.lavorato.mlpark.MapsActivity"
 
         />
-
-    <ImageButton
-        android:src="@mipmap/where_btn"
-        android:id="@+id/imageButton2"
-        android:layout_marginTop="75dp"
-        android:background="@android:color/transparent"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="15dp" />
 
     <ImageButton
         android:src="@mipmap/park_btn"
@@ -45,47 +24,44 @@
         android:layout_height="45dp" />
 
     <ImageButton
+        android:src="@mipmap/where_btn"
+        android:id="@+id/imageButton2"
+        android:layout_marginTop="75dp"
+        android:background="@android:color/transparent"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="15dp" />
+
+    <ImageButton
+        android:src="@mipmap/where_btn"
+        android:id="@+id/imageButton3"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="15dp"
+        android:background="@android:color/transparent"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_gravity="end"/>
+
+    <ImageButton
         android:src="@mipmap/park_btn"
         android:id="@+id/imageButton4"
         android:background="@android:color/transparent"
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:layout_marginTop="450dp"
-        android:layout_marginLeft="15dp" />
-
-    <TextView
-        android:text="Parcheggia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="55dp" />
-
-    <TextView
-        android:text="Dove?"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView2"
-        android:layout_marginTop="120dp"
-        android:layout_marginStart="20dp" />
-
-    <ImageButton
-        android:src="@mipmap/where_btn"
-        android:id="@+id/imageButton3"
-        android:layout_marginTop="5dp"
-        android:background="@android:color/transparent"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="250dp" />
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="30dp"
+        android:layout_gravity="bottom"/>
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageButton5"
-        android:layout_marginLeft="250dp"
+        android:layout_marginEnd="15dp"
         android:layout_marginTop="75dp"
         android:background="@android:color/transparent"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@mipmap/ic_launcher"
+        android:layout_gravity="end" />
 
 
 </FrameLayout>

@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
@@ -42,8 +43,7 @@ public class EditContentsActivity extends BaseDemoActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-    }
+        super.onCreate(savedInstanceState);}
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);

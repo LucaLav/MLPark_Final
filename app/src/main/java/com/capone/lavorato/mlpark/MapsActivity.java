@@ -50,7 +50,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final int MPR = 1;
 
-    //permessi da richiedere
+    //permessi da richiedere a tempo di esecuzione
     private String[] all_permissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -63,18 +63,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private String FILENAME = "posizione_parcheggio";
-    LocationManager lm;
+    private LocationManager lm;
     boolean hasLocation = false;
-    static final int REQUEST_IMAGE_CAPTURE = 2;
-    static final int DOWNLOAD_FILE = 3;
-    static final int UPLOAD_IMAGE = 4;
-    String mCurrentPhotoPath;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int DOWNLOAD_FILE = 2;
+    static final int UPLOAD_IMAGE = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        checkPermission(all_permissions, MPR);
+        checkPermission(all_permissions, MPR); //controlla i permessi
     }
 
     @Override
@@ -132,12 +131,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGPS);
         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNet);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        //Per mostrare la mappa di Google Maps a schermo
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //Pulsante per memorizzare il parcheggio
+        //Pulsante per memorizzare il parcheggio e la foto, ed effettuare l'upload su Drive
         ImageButton button = (ImageButton) findViewById(R.id.imageButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,7 +152,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        //Pulsante per recuperare posizione in locale
+        //Pulsante per recuperare la posizione in locale
         ImageButton button2 = (ImageButton) findViewById(R.id.imageButton2);
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,12 +166,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        //Pulsante per recuperare posizione da Drive
+        //Pulsante per recuperare la posizione da Drive
         ImageButton button3 = (ImageButton) findViewById(R.id.imageButton3);
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 downloadFile();
+            }
+        });
+
+
+        //Pulsante per recupero foto da Drive
+        ImageButton button5 = (ImageButton) findViewById(R.id.imageButton5);
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
+                startActivity(imageFromDrive);
+
             }
         });
 
@@ -187,18 +199,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .setMessage(R.string.info_dialog_text);
                 builder.create();
                 builder.show();
-
-            }
-        });
-
-        //Pulsante per recupero foto da Drive
-        ImageButton button5 = (ImageButton) findViewById(R.id.imageButton5);
-        button5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
-                startActivity(imageFromDrive);
 
             }
         });
@@ -251,8 +251,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
         fos.write(coordEparkdate.getBytes());
         fos.close();
-
-        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
 
         //upload file localizzazione su Drive
         uploadFile(location.latitude, location.longitude);
@@ -309,8 +307,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = new File (storageDir, "lastpark.jpg");
 
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
+
         return image;
     }
 
@@ -452,9 +449,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             deleteFoto();
         }
 
-        if(requestCode == UPLOAD_IMAGE ){//&& resultCode == RESULT_OK) {
+        if(requestCode == UPLOAD_IMAGE){//&& resultCode == RESULT_OK) {
 
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE); //animazione caricamento
+            //findViewById(R.id.loadingPanel).setVisibility(View.GONE); //animazione caricamento
 
         }
 

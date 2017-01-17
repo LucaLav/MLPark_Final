@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
@@ -24,26 +25,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * Created by luca on 14/01/17.
- */
-
 public class EditImageActivity extends BaseDemoActivity {
     private static final String TAG = "EditImageActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.edit_contents_layout);
     }
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
 
-        Log.e("QUERY IMG", "QUERY");
+        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
 
 
         Query query_img = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg")) //LPPMLPark_image.jpg
+                .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg"))
                 .build();
 
         Drive.DriveApi.query(getGoogleApiClient(), query_img).setResultCallback(queryImgCallback);
@@ -91,7 +89,6 @@ public class EditImageActivity extends BaseDemoActivity {
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
-                //Bitmap image = getIntent().getParcelableExtra("imageFile");
 
                 File immagine = (File)getIntent().getExtras().get("imageFile");
                 Bitmap image = BitmapFactory.decodeFile(immagine.getPath());
