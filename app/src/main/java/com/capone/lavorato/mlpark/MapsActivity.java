@@ -405,7 +405,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //funzione per ingrandire marker e personalizzarlo
     private Bitmap iconScaler(int height, int width){
 
-        BitmapDrawable  bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.mipmap.poffy_car);
+        BitmapDrawable  bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.mipmap.marker_car);
         Bitmap b = bitmapdraw.getBitmap();
         Bitmap bigmarker = Bitmap.createScaledBitmap(b,width,height,false);
 
