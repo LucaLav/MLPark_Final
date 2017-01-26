@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,15 +23,25 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+
+import com.github.amlcurran.showcaseview.ShowcaseDrawer;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.SimpleShowcaseEventListener;
+import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
+import com.github.amlcurran.showcaseview.targets.Target;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
+
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -46,10 +56,9 @@ import java.util.StringTokenizer;
 
 import static java.lang.Double.parseDouble;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
 
-    private static final int MPR = 1;
-
+    /*private static final int MPR = 1;
     //permessi da richiedere a tempo di esecuzione
     private String[] all_permissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -57,35 +66,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Manifest.permission.INTERNET,
             Manifest.permission.GET_ACCOUNTS,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
-    };
-
+            Manifest.permission.CAMERA};*/
     private static GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
+    private Location initLocation;
     private String FILENAME = "posizione_parcheggio";
     private LocationManager lm;
     boolean hasLocation = false;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int DOWNLOAD_FILE = 2;
     static final int UPLOAD_IMAGE = 3;
+    private int counter = 0;
+    private ShowcaseView showcaseView;
+    @Override
+    public void onClick(View v) {
+        switch (counter) {
+            case 0:
+                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton2)), true);
+                showcaseView.setContentTitle("Recupera Parcheggio");
+                showcaseView.setContentText("Premi per recuperare il parcheggio in locale");
+                showcaseView.setButtonText("Avanti");
+                break;
 
+            case 1:
+                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton3)), true);
+                showcaseView.setContentTitle("Recupera Coordinate Drive");
+                showcaseView.setContentText("Premi per recuperare le coordinate da Google Drive");
+                showcaseView.setButtonText("Avanti");
+                break;
+
+            case 2:
+                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton5)), true);
+                showcaseView.setContentTitle("Recupera Foto Drive");
+                showcaseView.setContentText("Premi per recuperare la foto da Google Drive");
+                showcaseView.setButtonText("Avanti");
+                break;
+
+            case 3:
+                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton4)), true);
+                showcaseView.setContentTitle("Info App");
+                showcaseView.setContentText("Premi per visualizzare le info");
+                showcaseView.setButtonText("Avanti");
+                break;
+
+            case 4:
+                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton6)), true);
+                showcaseView.setContentTitle("Aiuto");
+                showcaseView.setContentText("Puoi premere qui per rivedere le istruzioni");
+                showcaseView.setButtonText("Ok");
+                break;
+            case 5:
+                showcaseView.hide();
+                break;
+        }
+        counter++;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        checkPermission(all_permissions, MPR); //controlla i permessi
+        //checkPermission(all_permissions, MPR);
+        //  Intro App Initialize SharedPreferences
+        checkFirstRun();
     }
 
     @Override
     protected void onStart(){
         super.onStart();
+
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        initLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
             @Override
             public void onLocationChanged(Location location) {
                 hasLocation = true;
                 myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation,(float) (0.9*mMap.getMaxZoomLevel())));
             }
 
 
@@ -149,6 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
                 else Toast.makeText(getApplicationContext(),R.string.errore_localizzazione, Toast.LENGTH_LONG).show();;
+
             }
         });
 
@@ -162,7 +220,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
         });
 
@@ -175,7 +232,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
         //Pulsante per recupero foto da Drive
         ImageButton button5 = (ImageButton) findViewById(R.id.imageButton5);
         button5.setOnClickListener(new View.OnClickListener() {
@@ -184,7 +240,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
                 startActivity(imageFromDrive);
-
             }
         });
 
@@ -199,7 +254,71 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .setMessage(R.string.info_dialog_text);
                 builder.create();
                 builder.show();
+            }
+        });
 
+        ImageButton button6 = (ImageButton) findViewById(R.id.imageButton6);
+        button6.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                counter = 0;
+                RelativeLayout.LayoutParams lps = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lps.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                lps.addRule(RelativeLayout.CENTER_IN_PARENT);
+                showcaseView = new ShowcaseView.Builder(MapsActivity.this)
+                        .setTarget(new ViewTarget(findViewById(R.id.imageButton)))
+                        .setContentTitle("Setta Parcheggio")
+                        .setContentText("Premi per salvare il parcheggio in locale")
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                switch (counter) {
+                                    case 0:
+                                        showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton2)), true);
+                                        showcaseView.setContentTitle("Recupera Parcheggio");
+                                        showcaseView.setContentText("Premi per recuperare il parcheggio in locale");
+                                        showcaseView.setButtonText("Avanti");
+                                        break;
+
+                                    case 1:
+                                        showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton3)), true);
+                                        showcaseView.setContentTitle("Recupera Coordinate Drive");
+                                        showcaseView.setContentText("Premi per recuperare le coordinate da Google Drive");
+                                        showcaseView.setButtonText("Avanti");
+                                        break;
+
+                                    case 2:
+                                        showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton5)), true);
+                                        showcaseView.setContentTitle("Recupera Foto Drive");
+                                        showcaseView.setContentText("Premi per recuperare la foto da Google Drive");
+                                        showcaseView.setButtonText("Avanti");
+                                        break;
+
+                                    case 3:
+                                        showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton4)), true);
+                                        showcaseView.setContentTitle("Info App");
+                                        showcaseView.setContentText("Premi per visualizzare le info");
+                                        showcaseView.setButtonText("Avanti");
+                                        break;
+
+                                    case 4:
+                                        showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton6)), true);
+                                        showcaseView.setContentTitle("Aiuto");
+                                        showcaseView.setContentText("Puoi premere qui per rivedere le istruzioni");
+                                        showcaseView.setButtonText("Ok");
+                                        break;
+                                    case 5:
+                                        showcaseView.hide();
+                                        break;
+                                }
+                                counter++;
+                            }
+
+                        })
+                        .build();
+                showcaseView.setButtonPosition(lps);
+                showcaseView.setButtonText("Avanti");
+                showcaseView.setBlocksTouches(true);
             }
         });
 
@@ -220,6 +339,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
+        LatLng init_loc = new LatLng(initLocation.getLatitude(),initLocation.getLongitude());
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(init_loc,(float) (0.75*mMap.getMaxZoomLevel())));
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -310,9 +432,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         return image;
     }
-
-
-
 
     //Funzione che recupera marcatore
     public void retrieveMarker() throws IOException {
@@ -419,7 +538,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
     public void uploadFile(Double latitude, Double longitude) {
 
         Intent intent = new Intent(this, EditContentsActivity.class);
@@ -478,7 +596,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -502,5 +620,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // other 'case' lines to check for other
             // permissions this app might request
         }
+    }*/
+
+    private void checkFirstRun() {
+
+        final String PREFS_NAME = "AppPreference";
+        final String PREF_VERSION_CODE_KEY = "versionCode";
+        final int DOESNT_EXIST = -1;
+
+
+        // Get current version code
+        int currentVersionCode = 0;
+        try {
+            Log.e("VersionCode", "Sono nella try");
+            currentVersionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        // Retrieve version code
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int savedVersionCode = prefs.getInt(PREF_VERSION_CODE_KEY, DOESNT_EXIST);
+
+        // Check primo avvio
+        if (currentVersionCode == savedVersionCode) {
+            // Avvio normale
+            return;
+
+        } else if (savedVersionCode == DOESNT_EXIST) {
+            // Primo avvio, schermata di intro
+            Intent i = new Intent(getApplicationContext(), SlideShow.class);
+            startActivity(i);
+
+
+        } else if (currentVersionCode > savedVersionCode) {
+            Intent i = new Intent(getApplicationContext(), SlideShow.class);
+            startActivity(i);
+
+        }
+        // Update the shared preferences with the current version code
+        prefs.edit().putInt(PREF_VERSION_CODE_KEY, currentVersionCode).apply();
+
     }
+
+
 }

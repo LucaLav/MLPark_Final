@@ -11,8 +11,9 @@
     <string name="errore_localizzazione">Localizzazione non pronta. Attendere e riprovare.</string>
     <string name="errore_foto">Foto non esistente!</string>
     <string name="errore_localizzazione_disattivata">La Localizzazione GPS è settata su OFF.\nAbilitare la Localizzazione per usare questa app</string>
-
-
-
+    <string name="parking_desc">Aggiungi la posizione della tua auto al parcheggio. Consentire accesso alla localizzazione</string>
+    <string name="retrieve_desc">Recupera velocemente la posizione della tua auto. Consentire accesso allo spazio di archiviazione per salvare le informazioni</string>
+    <string name="retrieve_drive">Puoi anche recuperare le informazioni da Google Drive. Consentire accesso a Google Drive</string>
+    <string name="retrieve_img_drive">Addirittura la foto della tua auto, sempre in Cloud. Consentire accesso alla fotocamera</string>
 
 </resources>

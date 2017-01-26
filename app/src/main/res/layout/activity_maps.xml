@@ -35,7 +35,7 @@
     <ImageButton
         android:src="@mipmap/drive_c_btn"
         android:id="@+id/imageButton3"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="60dp"
         android:layout_marginEnd="15dp"
         android:background="@android:color/transparent"
         android:layout_width="45dp"
@@ -45,23 +45,33 @@
     <ImageButton
         android:src="@mipmap/info_btn"
         android:id="@+id/imageButton4"
-        android:background="@android:color/transparent"
         android:layout_width="45dp"
         android:layout_height="45dp"
+        android:background="@android:color/transparent"
         android:layout_marginTop="450dp"
         android:layout_marginLeft="15dp"
         android:layout_marginBottom="30dp"
         android:layout_gravity="bottom"/>
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:id="@+id/imageButton5"
         android:layout_marginEnd="15dp"
-        android:layout_marginTop="75dp"
+        android:layout_marginTop="125dp"
         android:background="@android:color/transparent"
         android:src="@mipmap/drive_i_btn"
         android:layout_gravity="end" />
+
+    <ImageButton
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="30dp"
+        android:layout_marginEnd="15dp"
+        android:src="@mipmap/help_btn"
+        android:id="@+id/imageButton6"
+        android:background="@android:color/transparent"/>
 
 
 </FrameLayout>
