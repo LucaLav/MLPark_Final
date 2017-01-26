@@ -56,17 +56,8 @@ import java.util.StringTokenizer;
 
 import static java.lang.Double.parseDouble;
 
-public class MapsActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    /*private static final int MPR = 1;
-    //permessi da richiedere a tempo di esecuzione
-    private String[] all_permissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.INTERNET,
-            Manifest.permission.GET_ACCOUNTS,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA};*/
     private static GoogleMap mMap;
     private LatLng myLocation = new LatLng(0, 0);
     private Location initLocation;
@@ -78,54 +69,11 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     static final int UPLOAD_IMAGE = 3;
     private int counter = 0;
     private ShowcaseView showcaseView;
-    @Override
-    public void onClick(View v) {
-        switch (counter) {
-            case 0:
-                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton2)), true);
-                showcaseView.setContentTitle("Recupera Parcheggio");
-                showcaseView.setContentText("Premi per recuperare il parcheggio in locale");
-                showcaseView.setButtonText("Avanti");
-                break;
 
-            case 1:
-                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton3)), true);
-                showcaseView.setContentTitle("Recupera Coordinate Drive");
-                showcaseView.setContentText("Premi per recuperare le coordinate da Google Drive");
-                showcaseView.setButtonText("Avanti");
-                break;
-
-            case 2:
-                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton5)), true);
-                showcaseView.setContentTitle("Recupera Foto Drive");
-                showcaseView.setContentText("Premi per recuperare la foto da Google Drive");
-                showcaseView.setButtonText("Avanti");
-                break;
-
-            case 3:
-                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton4)), true);
-                showcaseView.setContentTitle("Info App");
-                showcaseView.setContentText("Premi per visualizzare le info");
-                showcaseView.setButtonText("Avanti");
-                break;
-
-            case 4:
-                showcaseView.setShowcase(new ViewTarget(findViewById(R.id.imageButton6)), true);
-                showcaseView.setContentTitle("Aiuto");
-                showcaseView.setContentText("Puoi premere qui per rivedere le istruzioni");
-                showcaseView.setButtonText("Ok");
-                break;
-            case 5:
-                showcaseView.hide();
-                break;
-        }
-        counter++;
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        //checkPermission(all_permissions, MPR);
         //  Intro App Initialize SharedPreferences
         checkFirstRun();
     }
@@ -135,7 +83,6 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         super.onStart();
 
         lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        initLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         LocationListener locationListenerGPS = new LocationListener() { //Listener GPS
 
             @Override
@@ -340,17 +287,12 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
-        LatLng init_loc = new LatLng(initLocation.getLatitude(),initLocation.getLongitude());
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(init_loc,(float) (0.75*mMap.getMaxZoomLevel())));
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the yeah case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
+        } else {
+            initLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            LatLng init_loc = new LatLng(initLocation.getLatitude(),initLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(init_loc,(float) (0.75*mMap.getMaxZoomLevel())));
         }
     }
 
@@ -428,7 +370,6 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         // Create an image file name
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = new File (storageDir, "lastpark.jpg");
-
 
         return image;
     }
@@ -575,53 +516,6 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
     }
 
-    public void checkPermission(String[] permission, int request_id){
-
-        if (ContextCompat.checkSelfPermission(this, permission[0]) != PackageManager.PERMISSION_GRANTED) {
-                // Should we show an explanation?
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission[0])) {
-
-                    // Show an explanation to the user *asynchronously* -- don't block
-                    // this thread waiting for the user's response! After the user
-                    // sees the explanation, try again to request the permission.
-
-                } else {
-                    ActivityCompat.requestPermissions(this, permission,request_id);
-
-                    // No explanation needed, we can request the permission.
-                    // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                    // app-defined int constant. The callback method gets the
-                    // result of the request.
-                }
-        }
-    }
-
-    /*@Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MPR:
-            {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    android.os.Process.killProcess(android.os.Process.myPid());
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }*/
-
     private void checkFirstRun() {
 
         final String PREFS_NAME = "AppPreference";
@@ -663,6 +557,5 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         prefs.edit().putInt(PREF_VERSION_CODE_KEY, currentVersionCode).apply();
 
     }
-
 
 }

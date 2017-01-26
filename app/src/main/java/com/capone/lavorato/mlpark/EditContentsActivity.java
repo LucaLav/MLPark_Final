@@ -59,8 +59,6 @@ public class EditContentsActivity extends BaseDemoActivity {
         public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
             MetadataBuffer mb = metadataBufferResult.getMetadataBuffer();
 
-            Log.e("Conteggio Buffer", ""+mb.getCount());
-
             if (mb.getCount() == 0){
                 Log.e("Buffer", "VUOTO");
                 Intent intent = new Intent(getApplicationContext(), CreateFileInAppFolderActivity.class);
@@ -86,12 +84,10 @@ public class EditContentsActivity extends BaseDemoActivity {
         @Override
         protected Boolean doInBackgroundConnected(DriveFile... args) {
             DriveFile file = args[0];
-            Log.e("Resource ID del file passato ad AsyncTask", file.getDriveId().getResourceId());
             try {
                 DriveContentsResult driveContentsResult = file.open(
                         getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null).await();
-                Log.e("Status", ""+driveContentsResult.getStatus()
-                );
+
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
@@ -101,9 +97,6 @@ public class EditContentsActivity extends BaseDemoActivity {
 
                 com.google.android.gms.common.api.Status status =
                         driveContents.commit(getGoogleApiClient(), null).await();
-
-
-                Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
 
                 return status.getStatus().isSuccess();
             } catch (IOException e) {
@@ -116,7 +109,7 @@ public class EditContentsActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while editing contents");
+                showMessage("Errore durante l'upload del file");
                 return;
             }
             showMessage("File correttamente modificato");

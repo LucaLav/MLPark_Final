@@ -52,12 +52,9 @@ public class EditImageActivity extends BaseDemoActivity {
         public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
             MetadataBuffer mb = metadataBufferResult.getMetadataBuffer();
 
-            Log.e("Conteggio Buffer", ""+mb.getCount());
-
             if (mb.getCount() == 0){
                 Log.e("Buffer", "VUOTO");
                 Intent intent = new Intent(getApplicationContext(), CreateImageActivity.class);
-                //intent.putExtra("imageFile", getIntent().getParcelableExtra("imageFile"));
                 File immagine = (File)getIntent().getExtras().get("imageFile");
                 intent.putExtra("imageFile", immagine);
 
@@ -80,12 +77,10 @@ public class EditImageActivity extends BaseDemoActivity {
         @Override
         protected Boolean doInBackgroundConnected(DriveFile... args) {
             DriveFile file = args[0];
-            Log.e("Resource ID del file passato ad AsyncTask", file.getDriveId().getResourceId());
             try {
                 DriveApi.DriveContentsResult driveContentsResult = file.open(
                         getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null).await();
-                Log.e("Status", ""+driveContentsResult.getStatus()
-                );
+
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
@@ -101,9 +96,6 @@ public class EditImageActivity extends BaseDemoActivity {
 
                 com.google.android.gms.common.api.Status status =
                         driveContents.commit(getGoogleApiClient(), null).await();
-
-
-                Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
 
                 return status.getStatus().isSuccess();
             } catch (IOException e) {

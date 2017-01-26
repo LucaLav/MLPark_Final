@@ -59,7 +59,7 @@ public class CreateImageActivity extends BaseDemoActivity {
                 @Override
                 public void onResult(DriveContentsResult result) {
                     if (!result.getStatus().isSuccess()) {
-                        showMessage("Error while trying to create new file contents");
+                        showMessage("Errore durante la scrittura del file");
                         return;
                     }
 
@@ -67,8 +67,6 @@ public class CreateImageActivity extends BaseDemoActivity {
                             .setTitle("LPPMLPark_image.jpg")
                             .setMimeType("image/jpeg")
                             .build();
-
-                    Log.e("STATUS_CREAZIONE IMG", "Sta per aprire la cartella Root e creare il file");
 
                     Drive.DriveApi.getRootFolder(getGoogleApiClient())
                             .createFile(getGoogleApiClient(), changeSet, result
@@ -82,12 +80,11 @@ public class CreateImageActivity extends BaseDemoActivity {
         @Override
         public void onResult(DriveFileResult result) {
             if (!result.getStatus().isSuccess()) {
-                showMessage("Error while trying to create the file");
+                showMessage("Errore durante la creazione del file");
                 return;
             }
 
-            showMessage("Created a file in Root Folder: "
-                    + result.getDriveFile().getDriveId());
+            showMessage("Operazione conclusa");
             DriveFile file = result.getDriveFile();
             new EditImageAsyncTask(CreateImageActivity.this).execute(file);
         }
@@ -108,8 +105,6 @@ public class CreateImageActivity extends BaseDemoActivity {
                 if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
                 }
-
-                Log.e("ATTENZIONE", "sto in task async immagine");
 
                 //Bitmap image = getIntent().getParcelableExtra("imageFile");
                 File immagine = (File)getIntent().getExtras().get("imageFile");
@@ -132,7 +127,7 @@ public class CreateImageActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while editing contents");
+                showMessage("Errore durante la modifica del file");
                 return;
             }
             showMessage("File correttamente creato e modificato");

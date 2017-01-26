@@ -4,7 +4,6 @@ import android.Manifest;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import com.github.paolorotolo.appintro.AppIntro;
 import com.github.paolorotolo.appintro.AppIntroFragment;
 
@@ -34,6 +33,7 @@ public class SlideShow extends AppIntro {
         setFadeAnimation();
         setDoneText("Fatto");
         setSkipText("Annulla");
+        //Permessi da chiedere al variare della slide
         askForPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         askForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
         askForPermissions(new String[]{Manifest.permission.GET_ACCOUNTS}, 3);

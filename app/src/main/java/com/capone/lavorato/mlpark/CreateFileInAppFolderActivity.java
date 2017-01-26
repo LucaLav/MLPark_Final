@@ -55,7 +55,7 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
         @Override
         public void onResult(DriveContentsResult result) {
             if (!result.getStatus().isSuccess()) {
-                showMessage("Error while trying to create new file contents");
+                showMessage("Errore durante la creazione del file");
                 return;
             }
 
@@ -63,8 +63,6 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
                     .setTitle("VERYLastParkPositionMLPARK.txt")
                     .setMimeType("text/plain")
                     .build();
-
-            Log.e("STATUS_CREAZIONE", "Sta per aprire la cartella Root e creare il file");
 
             Drive.DriveApi.getRootFolder(getGoogleApiClient())
                     .createFile(getGoogleApiClient(), changeSetTxt, result
@@ -78,12 +76,11 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
         @Override
         public void onResult(DriveFileResult result) {
             if (!result.getStatus().isSuccess()) {
-                showMessage("Error while trying to create the file");
+                showMessage("Errore durante la creazione del file");
                 return;
             }
 
-            showMessage("Created a file in Root Folder: "
-                    + result.getDriveFile().getDriveId());
+            showMessage("Operazione conclusa");
             DriveFile file = result.getDriveFile();
             new EditCoordinatesAsyncTask(CreateFileInAppFolderActivity.this).execute(file);
         }
@@ -120,7 +117,7 @@ public class CreateFileInAppFolderActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while editing contents");
+                showMessage("Errore durante la scrittura del file");
                 return;
             }
             showMessage("File correttamente creato e modificato");

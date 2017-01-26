@@ -63,8 +63,6 @@ public class DownloadImageActivity extends BaseDemoActivity {
         public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
             MetadataBuffer mb = metadataBufferResult.getMetadataBuffer();
 
-            Log.e("Conteggio Buffer", ""+mb.getCount());
-
             if (mb.getCount() == 0){
                 Log.e("Buffer", "VUOTO");
                 showMessage("Non è presente alcuna immagine su Drive");
@@ -91,7 +89,6 @@ public class DownloadImageActivity extends BaseDemoActivity {
 
             DriveApi.DriveContentsResult driveContentsResult = file.open(
                     getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null).await();
-            Log.e("Resource ID del file passato ad AsyncTask", file.getDriveId().getResourceId());
             if (!driveContentsResult.getStatus().isSuccess()) {
                 return false;
             }
@@ -118,15 +115,6 @@ public class DownloadImageActivity extends BaseDemoActivity {
             //lancia intent galleria per visualizzare la foto
             startActivity(i);
 
-            //LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()), Double.parseDouble(coordinate.nextToken()));
-
-            //Intent intent = new Intent();
-
-            //intent.putExtra("latitude", Double.parseDouble(coordinate.nextToken()));
-            //intent.putExtra("longitude", Double.parseDouble(coordinate.nextToken()));
-
-            //setResult(RESULT_OK, intent);
-
             driveContents.discard(getGoogleApiClient());
             return true;
 
@@ -135,7 +123,7 @@ public class DownloadImageActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while reading contents");
+                showMessage("Errore durante la lettura del file");
                 return;
             }
             showMessage("File correttamente scaricato");

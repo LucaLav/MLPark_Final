@@ -84,7 +84,6 @@ public class DownloadContentsActivity extends BaseDemoActivity {
 
             DriveApi.DriveContentsResult driveContentsResult = file.open(
                     getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null).await();
-            Log.e("Resource ID del file passato ad AsyncTask", file.getDriveId().getResourceId());
             if (!driveContentsResult.getStatus().isSuccess()) {
                     return false;
             }
@@ -104,8 +103,6 @@ public class DownloadContentsActivity extends BaseDemoActivity {
             }
             StringTokenizer coordinate = new StringTokenizer(fileContent.toString());
 
-            //LatLng location = new LatLng(Double.parseDouble(coordinate.nextToken()), Double.parseDouble(coordinate.nextToken()));
-
             Intent intent = new Intent();
 
             intent.putExtra("latitude", Double.parseDouble(coordinate.nextToken()));
@@ -121,7 +118,7 @@ public class DownloadContentsActivity extends BaseDemoActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {
-                showMessage("Error while reading contents");
+                showMessage("Errore durante la lettura del file");
                 return;
             }
             showMessage("File correttamente scaricato");
