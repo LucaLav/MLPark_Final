@@ -185,8 +185,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
-                Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
-                startActivity(imageFromDrive);
+                SharedPreferences fotoDrive = getSharedPreferences("fotoDrive", MODE_PRIVATE);
+                if (fotoDrive.getBoolean("fotoDrive",true))
+                {
+                    Intent imageFromDrive = new Intent(getApplicationContext(), DownloadImageActivity.class);
+                    startActivity(imageFromDrive);
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(),"Foto non presente su Drive", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -500,11 +508,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-                File[] listFiles= getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
-                uploadImageFile(listFiles[0]);
+            SharedPreferences fotoDrive = getSharedPreferences("fotoDrive", MODE_PRIVATE);
+            fotoDrive.edit().putBoolean("fotoDrive",true).apply();
+
+            File[] listFiles= getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
+            uploadImageFile(listFiles[0]);
         }
 
         if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_CANCELED){
+            SharedPreferences fotoDrive = getSharedPreferences("fotoDrive", MODE_PRIVATE);
+            fotoDrive.edit().putBoolean("fotoDrive",false).apply();
+
             deleteFoto();
         }
 
