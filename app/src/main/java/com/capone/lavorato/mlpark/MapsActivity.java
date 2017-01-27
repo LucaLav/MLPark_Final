@@ -81,7 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onLocationChanged(Location location) {
                 hasLocation = true;
                 myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation,(float) (0.9*mMap.getMaxZoomLevel())));
+                //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation,(float) (0.9*mMap.getMaxZoomLevel())));
             }
 
 
