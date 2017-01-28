@@ -17,6 +17,7 @@ package com.capone.lavorato.mlpark;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
+import android.icu.util.TimeUnit;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -25,6 +26,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
+
+import static com.google.android.gms.common.ConnectionResult.NETWORK_ERROR;
 
 /**
  * An abstract activity that handles authorization and connection to the Drive
@@ -65,7 +68,11 @@ public abstract class BaseDemoActivity extends Activity implements
                     .addOnConnectionFailedListener(this)
                     .build();
         }
-        mGoogleApiClient.connect();
+        ConnectionResult cr = mGoogleApiClient.blockingConnect(5, java.util.concurrent.TimeUnit.SECONDS);
+        if (cr.getErrorCode() == NETWORK_ERROR){
+            Toast.makeText(this, "Connection Error. Retry", Toast.LENGTH_SHORT).show();
+        }
+        //mGoogleApiClient.connect();
     }
 
     /**
@@ -118,6 +125,7 @@ public abstract class BaseDemoActivity extends Activity implements
         Log.i(TAG, "GoogleApiClient connection failed: " + result.toString());
         if (!result.hasResolution()) {
             // show the localized error dialog.
+
             GoogleApiAvailability.getInstance().getErrorDialog(this, result.getErrorCode(), 0).show();
             return;
         }

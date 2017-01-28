@@ -38,8 +38,6 @@ public class EditImageActivity extends BaseDemoActivity {
         super.onConnected(connectionHint);
 
         findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-
-
         Query query_img = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, "LPPMLPark_image.jpg"))
                 .build();
